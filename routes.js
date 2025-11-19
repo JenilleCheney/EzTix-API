@@ -76,7 +76,7 @@ router.post('/purchases', async (req, res) => {
     //Masking confidential information in the database
     const maskedCard = maskCardNumber(purchase.CreditCardNumber);
     const maskedCVV = "***"; 
-    
+
     await sql.query`
       INSERT INTO Purchase (
         NumTicketsOrdered, CustFirstName, CustLastName, CustEmail,
@@ -84,8 +84,8 @@ router.post('/purchases', async (req, res) => {
         ExpirationDate, CVV, ShowId, PurchaseDate
       ) VALUES (
         ${purchase.NumTicketsOrdered}, ${purchase.CustFirstName}, ${purchase.CustLastName}, ${purchase.CustEmail},
-        ${purchase.PhoneNumber}, ${purchase.Address}, ${purchase.CreditCardType}, ${purchase.CreditCardNumber},
-        ${purchase.ExpirationDate}, ${purchase.CVV}, ${purchase.ShowId}, GetDate()
+        ${purchase.PhoneNumber}, ${purchase.Address}, ${purchase.CreditCardType}, ${maskedCard},
+        ${purchase.ExpirationDate}, ${maskedCVV}, ${purchase.ShowId}, GetDate()
       )
     `;
 
