@@ -3,21 +3,11 @@ import sql from 'mssql';
 
 const router = express.Router();
 
-const config = {
-  server: 'localhost',
-  port: 1433,
-  database: 'master',
-  user: 'sa',
-  password: '57mJok51[fgN',
-  options: {
-    trustServerCertificate: true
-  }
-};
 
 // GET /api/shows/
 router.get('/', async (req, res) => {
   try {
-    await sql.connect(config);
+    await sql.connect("Server=localhost,1433; Database=master; User Id=sa; Password=57mJok51[fgN;TrustServerCertificate=True");
     const result = await sql.query(`
       SELECT s.ShowID, s.Title AS ShowTitle, s.FileName, s.Description, s.ShowTime,
              s.Owner, c.CategoryId, c.CategoryName, v.VenueId, v.VenueName
@@ -37,7 +27,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   const id = req.params.id;
   try {
-    await sql.connect(config);
+    await sql.connect("Server=localhost,1433; Database=master; User Id=sa; Password=57mJok51[fgN;TrustServerCertificate=True");
     const result = await sql.query(`
       SELECT * FROM dbo.show WHERE ShowID = ${id}
     `);
@@ -50,12 +40,17 @@ router.get('/:id', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
+//helper function for masking the Credit Card Number
+function maskCardNumber(cardNumber) {
+  const num = cardNumber.toString().replace(/\D/g, '');
+  const last4 = num.slice(-4);
+  return last4.padStart(num.length, '*');
+}
 // POST /api/shows/purchases
 router.post('/purchases', async (req, res) => {
   const purchase = req.body;
 
-  //validating proper JSON
+//  validating proper JSON
   if (!purchase || typeof purchase !== 'object') {
     return res.status(400).json({ error: 'Invalid JSON structure.' });
   }
@@ -76,8 +71,12 @@ router.post('/purchases', async (req, res) => {
  }
 
   try {
-    await sql.connect(config);
+    await sql.connect("Server=localhost,1433; Database=master; User Id=sa; Password=57mJok51[fgN;TrustServerCertificate=True");
 
+    //Masking confidential information in the database
+    const maskedCard = maskCardNumber(purchase.CreditCardNumber);
+    const maskedCVV = "***"; 
+    
     await sql.query`
       INSERT INTO Purchase (
         NumTicketsOrdered, CustFirstName, CustLastName, CustEmail,
